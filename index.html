@@ -1,0 +1,1268 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>COIFF PRO</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+
+<!-- Firebase SDK -->
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+  import { getDatabase, ref, set, push, onValue, remove, update, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
+
+  // ============================================================
+  // 🔥 COLLE ICI TES CLÉS FIREBASE (remplace les valeurs)
+  // ============================================================
+  const firebaseConfig = {
+    apiKey: "AIzaSyCJZPcO8XHjJIzvA-vLXBNtBUbTk5Zy-LY",
+    authDomain: "coiff-pro.firebaseapp.com",
+    databaseURL: "https://coiff-pro-default-rtdb.firebaseio.com",
+    projectId: "coiff-pro",
+    storageBucket: "coiff-pro.firebasestorage.app",
+    messagingSenderId: "423022719197",
+    appId: "1:423022719197:web:85897f303d0e7be1e56b34"
+  };
+  // ============================================================
+
+  const app = initializeApp(firebaseConfig);
+  const db = getDatabase(app);
+  window._db = db;
+  window._dbFns = { ref, set, push, onValue, remove, update, serverTimestamp };
+  window._firebaseReady = true;
+  document.dispatchEvent(new Event('firebase-ready'));
+</script>
+
+<style>
+  :root {
+    --gold: #C9A84C;
+    --gold-light: #E8C97A;
+    --dark: #0D0D0D;
+    --dark2: #161616;
+    --dark3: #1E1E1E;
+    --dark4: #272727;
+    --text: #F0EDE8;
+    --text-muted: #888;
+    --danger: #E05252;
+    --success: #52C97A;
+    --info: #5299E0;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: 'DM Sans', sans-serif;
+    background: var(--dark);
+    color: var(--text);
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  /* ===== LOGIN ===== */
+  #login-screen {
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: radial-gradient(ellipse at 30% 50%, #1a1200 0%, var(--dark) 70%);
+    padding: 20px;
+  }
+
+  .login-card {
+    background: var(--dark2);
+    border: 1px solid #2a2a2a;
+    border-radius: 24px;
+    padding: 48px 40px;
+    width: 100%;
+    max-width: 420px;
+    box-shadow: 0 40px 80px rgba(0,0,0,0.6);
+  }
+
+  .login-logo {
+    text-align: center;
+    margin-bottom: 40px;
+  }
+
+  .login-logo .scissors {
+    font-size: 48px;
+    display: block;
+    margin-bottom: 12px;
+    animation: spin 6s linear infinite;
+  }
+
+  @keyframes spin {
+    0%, 90% { transform: rotate(0deg); }
+    95% { transform: rotate(-30deg); }
+    100% { transform: rotate(0deg); }
+  }
+
+  .login-logo h1 {
+    font-family: 'Playfair Display', serif;
+    font-size: 32px;
+    letter-spacing: 4px;
+    background: linear-gradient(135deg, var(--gold), var(--gold-light));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+
+  .login-logo p {
+    color: var(--text-muted);
+    font-size: 13px;
+    letter-spacing: 1px;
+    margin-top: 4px;
+  }
+
+  .role-tabs {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 28px;
+    background: var(--dark3);
+    padding: 4px;
+    border-radius: 12px;
+  }
+
+  .role-tab {
+    flex: 1;
+    padding: 10px;
+    border: none;
+    border-radius: 8px;
+    background: transparent;
+    color: var(--text-muted);
+    cursor: pointer;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 14px;
+    font-weight: 500;
+    transition: all 0.2s;
+  }
+
+  .role-tab.active {
+    background: var(--gold);
+    color: var(--dark);
+  }
+
+  .form-group {
+    margin-bottom: 16px;
+  }
+
+  .form-group label {
+    display: block;
+    font-size: 12px;
+    color: var(--text-muted);
+    margin-bottom: 6px;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+  }
+
+  .form-group input, .form-group select {
+    width: 100%;
+    padding: 14px 16px;
+    background: var(--dark3);
+    border: 1px solid #2a2a2a;
+    border-radius: 10px;
+    color: var(--text);
+    font-family: 'DM Sans', sans-serif;
+    font-size: 15px;
+    transition: border-color 0.2s;
+    outline: none;
+  }
+
+  .form-group input:focus, .form-group select:focus {
+    border-color: var(--gold);
+  }
+
+  .form-group select option { background: var(--dark3); }
+
+  .btn-login {
+    width: 100%;
+    padding: 16px;
+    background: linear-gradient(135deg, var(--gold), var(--gold-light));
+    border: none;
+    border-radius: 12px;
+    color: var(--dark);
+    font-family: 'DM Sans', sans-serif;
+    font-size: 16px;
+    font-weight: 700;
+    cursor: pointer;
+    letter-spacing: 1px;
+    margin-top: 8px;
+    transition: transform 0.2s, box-shadow 0.2s;
+  }
+
+  .btn-login:hover { transform: translateY(-1px); box-shadow: 0 8px 24px rgba(201,168,76,0.3); }
+
+  .login-error {
+    color: var(--danger);
+    font-size: 13px;
+    text-align: center;
+    margin-top: 12px;
+    display: none;
+  }
+
+  .firebase-warning {
+    background: rgba(201,168,76,0.1);
+    border: 1px solid var(--gold);
+    border-radius: 10px;
+    padding: 12px;
+    font-size: 12px;
+    color: var(--gold-light);
+    margin-bottom: 20px;
+    text-align: center;
+    display: none;
+  }
+
+  /* ===== APP ===== */
+  #app { display: none; min-height: 100vh; }
+
+  .topbar {
+    background: var(--dark2);
+    border-bottom: 1px solid #222;
+    padding: 0 20px;
+    height: 60px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+  }
+
+  .topbar-logo {
+    font-family: 'Playfair Display', serif;
+    font-size: 20px;
+    background: linear-gradient(135deg, var(--gold), var(--gold-light));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    letter-spacing: 2px;
+  }
+
+  .topbar-right {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .user-badge {
+    font-size: 13px;
+    color: var(--text-muted);
+  }
+
+  .user-badge span { color: var(--gold); font-weight: 600; }
+
+  .btn-logout {
+    padding: 6px 14px;
+    background: transparent;
+    border: 1px solid #333;
+    border-radius: 8px;
+    color: var(--text-muted);
+    cursor: pointer;
+    font-size: 13px;
+    font-family: 'DM Sans', sans-serif;
+    transition: all 0.2s;
+  }
+
+  .btn-logout:hover { border-color: var(--danger); color: var(--danger); }
+
+  .nav-tabs {
+    display: flex;
+    background: var(--dark2);
+    border-bottom: 1px solid #222;
+    padding: 0 16px;
+    overflow-x: auto;
+    gap: 4px;
+  }
+
+  .nav-tab {
+    padding: 14px 18px;
+    border: none;
+    background: transparent;
+    color: var(--text-muted);
+    cursor: pointer;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 13px;
+    font-weight: 500;
+    white-space: nowrap;
+    border-bottom: 2px solid transparent;
+    transition: all 0.2s;
+  }
+
+  .nav-tab.active { color: var(--gold); border-bottom-color: var(--gold); }
+  .nav-tab:hover { color: var(--text); }
+
+  .content { padding: 20px; max-width: 900px; margin: 0 auto; }
+
+  /* ===== STATS CARDS ===== */
+  .stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+    gap: 12px;
+    margin-bottom: 24px;
+  }
+
+  .stat-card {
+    background: var(--dark2);
+    border: 1px solid #222;
+    border-radius: 16px;
+    padding: 20px;
+    text-align: center;
+    transition: transform 0.2s;
+  }
+
+  .stat-card:hover { transform: translateY(-2px); }
+  .stat-card .icon { font-size: 28px; margin-bottom: 8px; }
+  .stat-card .value { font-family: 'Playfair Display', serif; font-size: 28px; color: var(--gold); }
+  .stat-card .label { font-size: 11px; color: var(--text-muted); margin-top: 4px; text-transform: uppercase; letter-spacing: 1px; }
+
+  /* ===== SECTION TITLES ===== */
+  .section-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 16px;
+  }
+
+  .section-title {
+    font-family: 'Playfair Display', serif;
+    font-size: 20px;
+    color: var(--gold);
+  }
+
+  /* ===== BUTTONS ===== */
+  .btn {
+    padding: 10px 18px;
+    border: none;
+    border-radius: 10px;
+    cursor: pointer;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 14px;
+    font-weight: 600;
+    transition: all 0.2s;
+  }
+
+  .btn-primary { background: var(--gold); color: var(--dark); }
+  .btn-primary:hover { background: var(--gold-light); }
+  .btn-danger { background: rgba(224,82,82,0.15); color: var(--danger); border: 1px solid rgba(224,82,82,0.3); }
+  .btn-danger:hover { background: rgba(224,82,82,0.25); }
+  .btn-sm { padding: 6px 12px; font-size: 12px; }
+
+  /* ===== CARDS LIST ===== */
+  .card {
+    background: var(--dark2);
+    border: 1px solid #222;
+    border-radius: 14px;
+    padding: 16px;
+    margin-bottom: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    transition: border-color 0.2s;
+  }
+
+  .card:hover { border-color: #333; }
+  .card-info { flex: 1; }
+  .card-title { font-weight: 600; font-size: 15px; margin-bottom: 4px; }
+  .card-sub { font-size: 12px; color: var(--text-muted); }
+  .card-badge {
+    padding: 4px 10px;
+    border-radius: 20px;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.5px;
+  }
+
+  .badge-gold { background: rgba(201,168,76,0.15); color: var(--gold); }
+  .badge-green { background: rgba(82,201,122,0.15); color: var(--success); }
+  .badge-red { background: rgba(224,82,82,0.15); color: var(--danger); }
+  .badge-blue { background: rgba(82,153,224,0.15); color: var(--info); }
+
+  /* ===== MODAL ===== */
+  .modal-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.8);
+    backdrop-filter: blur(4px);
+    z-index: 1000;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+  }
+
+  .modal-overlay.open { display: flex; }
+
+  .modal {
+    background: var(--dark2);
+    border: 1px solid #2a2a2a;
+    border-radius: 20px;
+    padding: 28px;
+    width: 100%;
+    max-width: 440px;
+    max-height: 90vh;
+    overflow-y: auto;
+    animation: slideUp 0.25s ease;
+  }
+
+  @keyframes slideUp {
+    from { transform: translateY(20px); opacity: 0; }
+    to { transform: translateY(0); opacity: 1; }
+  }
+
+  .modal h2 {
+    font-family: 'Playfair Display', serif;
+    font-size: 22px;
+    color: var(--gold);
+    margin-bottom: 20px;
+  }
+
+  .modal .form-group { margin-bottom: 14px; }
+
+  .modal-actions {
+    display: flex;
+    gap: 10px;
+    margin-top: 20px;
+  }
+
+  .modal-actions .btn { flex: 1; padding: 12px; }
+
+  /* ===== CAISSE ===== */
+  .ticket-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px 0;
+    border-bottom: 1px solid #222;
+  }
+
+  .ticket-total {
+    display: flex;
+    justify-content: space-between;
+    padding: 14px 0;
+    font-size: 18px;
+    font-weight: 700;
+    color: var(--gold);
+  }
+
+  /* ===== LIVE INDICATOR ===== */
+  .live-dot {
+    width: 8px;
+    height: 8px;
+    background: var(--success);
+    border-radius: 50%;
+    display: inline-block;
+    margin-right: 6px;
+    animation: pulse 2s infinite;
+  }
+
+  @keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.4; }
+  }
+
+  /* ===== EMPTY STATE ===== */
+  .empty {
+    text-align: center;
+    padding: 40px 20px;
+    color: var(--text-muted);
+    font-size: 14px;
+  }
+
+  .empty .icon { font-size: 40px; margin-bottom: 10px; }
+
+  /* ===== TAB CONTENT ===== */
+  .tab-content { display: none; }
+  .tab-content.active { display: block; }
+
+  /* ===== PERFORMANCE TABLE ===== */
+  .perf-table { width: 100%; border-collapse: collapse; }
+  .perf-table th {
+    text-align: left;
+    font-size: 11px;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    padding: 8px 12px;
+    border-bottom: 1px solid #222;
+  }
+  .perf-table td {
+    padding: 12px;
+    border-bottom: 1px solid #1a1a1a;
+    font-size: 14px;
+  }
+  .perf-table tr:hover td { background: rgba(255,255,255,0.02); }
+
+  /* SCROLLBAR */
+  ::-webkit-scrollbar { width: 6px; height: 6px; }
+  ::-webkit-scrollbar-track { background: var(--dark); }
+  ::-webkit-scrollbar-thumb { background: #333; border-radius: 3px; }
+</style>
+</head>
+<body>
+
+<!-- ===== LOGIN ===== -->
+<div id="login-screen">
+  <div class="login-card">
+    <div class="login-logo">
+      <span class="scissors">✂️</span>
+      <h1>COIFF PRO</h1>
+      <p>Votre salon, géré simplement</p>
+    </div>
+
+    <div id="firebase-warning" class="firebase-warning">
+      ⚠️ Firebase non configuré — mode démo local activé
+    </div>
+
+    <div class="role-tabs">
+      <button class="role-tab active" onclick="selectRole('gerant')">👑 Gérant</button>
+      <button class="role-tab" onclick="selectRole('employe')">✂️ Employé</button>
+    </div>
+
+    <div id="login-form">
+      <div class="form-group" id="field-id">
+        <label>Identifiant</label>
+        <input type="text" id="login-id" placeholder="admin" />
+      </div>
+      <div class="form-group" id="field-employe" style="display:none">
+        <label>Employé</label>
+        <select id="login-employe"><option value="">Choisir...</option></select>
+      </div>
+      <div class="form-group">
+        <label>Mot de passe</label>
+        <input type="password" id="login-pass" placeholder="••••••••" />
+      </div>
+      <button class="btn-login" onclick="doLogin()">Se connecter →</button>
+      <div class="login-error" id="login-error">Identifiants incorrects</div>
+    </div>
+  </div>
+</div>
+
+<!-- ===== APP ===== -->
+<div id="app">
+  <div class="topbar">
+    <div class="topbar-logo">✂ COIFF PRO</div>
+    <div class="topbar-right">
+      <div class="user-badge"><span class="live-dot"></span><span id="user-name">—</span></div>
+      <button class="btn-logout" onclick="doLogout()">Déconnexion</button>
+    </div>
+  </div>
+
+  <div class="nav-tabs" id="nav-tabs"></div>
+
+  <div class="content">
+    <!-- DASHBOARD -->
+    <div class="tab-content active" id="tab-dashboard">
+      <div class="stats-grid">
+        <div class="stat-card">
+          <div class="icon">📅</div>
+          <div class="value" id="stat-rdv">0</div>
+          <div class="label">RDV aujourd'hui</div>
+        </div>
+        <div class="stat-card">
+          <div class="icon">✅</div>
+          <div class="value" id="stat-servis">0</div>
+          <div class="label">Clients servis</div>
+        </div>
+        <div class="stat-card">
+          <div class="icon">💰</div>
+          <div class="value" id="stat-caisse">0</div>
+          <div class="label">CA du jour (DJF)</div>
+        </div>
+        <div class="stat-card">
+          <div class="icon">📦</div>
+          <div class="value" id="stat-stock">0</div>
+          <div class="label">Alertes stock</div>
+        </div>
+      </div>
+
+      <div id="dashboard-perf" style="display:none">
+        <div class="section-header">
+          <div class="section-title">🏆 Performance équipe</div>
+        </div>
+        <div class="card" style="padding:0; overflow:hidden;">
+          <table class="perf-table" id="perf-table">
+            <thead>
+              <tr>
+                <th>Employé</th>
+                <th>RDV</th>
+                <th>Servis</th>
+                <th>CA (DJF)</th>
+              </tr>
+            </thead>
+            <tbody id="perf-body"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <div style="margin-top:20px">
+        <div class="section-title" style="margin-bottom:12px">⏰ Prochains RDV</div>
+        <div id="next-rdv-list"></div>
+      </div>
+    </div>
+
+    <!-- RDV -->
+    <div class="tab-content" id="tab-rdv">
+      <div class="section-header">
+        <div class="section-title">📅 Rendez-vous</div>
+        <button class="btn btn-primary" onclick="openModal('rdv')">+ RDV</button>
+      </div>
+      <div id="rdv-list"></div>
+    </div>
+
+    <!-- CAISSE -->
+    <div class="tab-content" id="tab-caisse">
+      <div class="section-header">
+        <div class="section-title">💰 Caisse</div>
+      </div>
+
+      <div class="form-group">
+        <label>Client</label>
+        <input type="text" id="caisse-client" placeholder="Nom du client" style="width:100%; padding:12px; background:var(--dark3); border:1px solid #2a2a2a; border-radius:10px; color:var(--text); font-family:'DM Sans',sans-serif; font-size:15px; outline:none;" />
+      </div>
+
+      <div class="form-group">
+        <label>Prestation</label>
+        <select id="caisse-prestation" style="width:100%; padding:12px; background:var(--dark3); border:1px solid #2a2a2a; border-radius:10px; color:var(--text); font-family:'DM Sans',sans-serif; font-size:15px; outline:none;">
+          <option value="">Choisir une prestation</option>
+        </select>
+      </div>
+
+      <button class="btn btn-primary" onclick="addToTicket()" style="margin-bottom:20px">+ Ajouter au ticket</button>
+
+      <div id="ticket-items"></div>
+      <div class="ticket-total">
+        <span>TOTAL</span>
+        <span id="ticket-total">0 DJF</span>
+      </div>
+      <button class="btn btn-primary" style="width:100%; padding:14px; font-size:16px;" onclick="encaisser()">💳 Encaisser</button>
+
+      <div style="margin-top:24px">
+        <div class="section-title" style="margin-bottom:12px">📋 Ventes du jour</div>
+        <div id="ventes-list"></div>
+        <div style="font-size:18px; font-weight:700; color:var(--gold); margin-top:12px;">Total : <span id="total-jour">0</span> DJF</div>
+      </div>
+    </div>
+
+    <!-- STOCK -->
+    <div class="tab-content" id="tab-stock">
+      <div class="section-header">
+        <div class="section-title">📦 Stock</div>
+        <button class="btn btn-primary" onclick="openModal('stock')">+ Produit</button>
+      </div>
+      <div id="stock-list"></div>
+    </div>
+
+    <!-- EQUIPE (gérant seulement) -->
+    <div class="tab-content" id="tab-equipe">
+      <div class="section-header">
+        <div class="section-title">👥 Mon équipe</div>
+        <button class="btn btn-primary" onclick="openModal('employe')">+ Employé</button>
+      </div>
+      <div id="equipe-list"></div>
+    </div>
+
+    <!-- PRESTATIONS (gérant seulement) -->
+    <div class="tab-content" id="tab-prestations">
+      <div class="section-header">
+        <div class="section-title">✂️ Prestations</div>
+        <button class="btn btn-primary" onclick="openModal('prestation')">+ Prestation</button>
+      </div>
+      <div id="prestations-list"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ===== MODALS ===== -->
+<div class="modal-overlay" id="modal-rdv">
+  <div class="modal">
+    <h2>📅 Nouveau RDV</h2>
+    <div class="form-group"><label>Client *</label><input type="text" id="rdv-client" placeholder="Nom du client" /></div>
+    <div class="form-group"><label>Heure *</label><input type="time" id="rdv-heure" /></div>
+    <div class="form-group"><label>Coiffeur</label><select id="rdv-coiffeur"><option value="">Non assigné</option></select></div>
+    <div class="form-group"><label>Prestation</label><select id="rdv-prestation"><option value="">—</option></select></div>
+    <div class="form-group"><label>Note</label><input type="text" id="rdv-note" placeholder="..." /></div>
+    <div class="modal-actions">
+      <button class="btn" style="background:var(--dark3)" onclick="closeModal('rdv')">Annuler</button>
+      <button class="btn btn-primary" onclick="saveRdv()">Enregistrer</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="modal-stock">
+  <div class="modal">
+    <h2>📦 Nouveau produit</h2>
+    <div class="form-group"><label>Nom *</label><input type="text" id="stock-nom" placeholder="Nom du produit" /></div>
+    <div class="form-group"><label>Catégorie</label>
+      <select id="stock-cat">
+        <option>Shampoing</option><option>Après-shampoing</option><option>Coloration</option>
+        <option>Soin</option><option>Accessoire</option><option>Autre</option>
+      </select>
+    </div>
+    <div class="form-group"><label>Quantité *</label><input type="number" id="stock-qty" placeholder="0" min="0" /></div>
+    <div class="form-group"><label>Seuil alerte</label><input type="number" id="stock-seuil" placeholder="5" min="0" /></div>
+    <div class="modal-actions">
+      <button class="btn" style="background:var(--dark3)" onclick="closeModal('stock')">Annuler</button>
+      <button class="btn btn-primary" onclick="saveStock()">Ajouter</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="modal-employe">
+  <div class="modal">
+    <h2>👤 Nouvel employé</h2>
+    <div class="form-group"><label>Prénom Nom *</label><input type="text" id="emp-nom" placeholder="Ex: Anas Dirahman" /></div>
+    <div class="form-group"><label>Spécialité</label><input type="text" id="emp-spec" placeholder="Ex: Coiffure hommes" /></div>
+    <div class="form-group"><label>Mot de passe</label><input type="text" id="emp-pass" placeholder="coiff123" /></div>
+    <div class="modal-actions">
+      <button class="btn" style="background:var(--dark3)" onclick="closeModal('employe')">Annuler</button>
+      <button class="btn btn-primary" onclick="saveEmploye()">Ajouter</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="modal-prestation">
+  <div class="modal">
+    <h2>✂️ Nouvelle prestation</h2>
+    <div class="form-group"><label>Nom *</label><input type="text" id="prest-nom" placeholder="Ex: Coupe homme" /></div>
+    <div class="form-group"><label>Prix (DJF) *</label><input type="number" id="prest-prix" placeholder="0" min="0" /></div>
+    <div class="form-group"><label>Icône</label>
+      <select id="prest-icon">
+        <option value="✂️">✂️ Ciseaux</option><option value="💈">💈 Barbier</option>
+        <option value="🪒">🪒 Rasoir</option><option value="💅">💅 Manucure</option>
+        <option value="🎨">🎨 Coloration</option><option value="💇">💇 Soin</option>
+      </select>
+    </div>
+    <div class="modal-actions">
+      <button class="btn" style="background:var(--dark3)" onclick="closeModal('prestation')">Annuler</button>
+      <button class="btn btn-primary" onclick="savePrestation()">Ajouter</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ===== STATE =====
+let currentUser = null;
+let currentRole = 'gerant';
+let selectedRole = 'gerant';
+let ticket = [];
+let data = { employes: {}, rdvs: {}, stock: {}, prestations: {}, ventes: {} };
+let useFirebase = false;
+let db, dbFns;
+
+const TODAY = new Date().toISOString().split('T')[0];
+
+// ===== FIREBASE SETUP =====
+document.addEventListener('firebase-ready', () => {
+  db = window._db;
+  dbFns = window._dbFns;
+  useFirebase = true;
+  listenAll();
+  loadEmployesForLogin();
+});
+
+window.addEventListener('load', () => {
+  setTimeout(() => {
+    if (!window._firebaseReady) {
+      document.getElementById('firebase-warning').style.display = 'block';
+      loadLocalData();
+      loadEmployesForLogin();
+    }
+  }, 2000);
+});
+
+function listenAll() {
+  if (!useFirebase) return;
+  const { ref, onValue } = dbFns;
+  ['employes','rdvs','stock','prestations','ventes'].forEach(key => {
+    onValue(ref(db, key), snap => {
+      data[key] = snap.val() || {};
+      refreshUI();
+    });
+  });
+}
+
+function loadLocalData() {
+  try { data = JSON.parse(localStorage.getItem('coiffpro') || '{}'); } catch(e) {}
+  data.employes = data.employes || {};
+  data.rdvs = data.rdvs || {};
+  data.stock = data.stock || {};
+  data.prestations = data.prestations || {};
+  data.ventes = data.ventes || {};
+}
+
+function saveLocal() {
+  if (!useFirebase) localStorage.setItem('coiffpro', JSON.stringify(data));
+}
+
+async function fbSet(path, val) {
+  if (useFirebase) {
+    const { ref, set } = dbFns;
+    await set(ref(db, path), val);
+  } else {
+    const keys = path.split('/');
+    let obj = data;
+    for (let i = 0; i < keys.length - 1; i++) {
+      if (!obj[keys[i]]) obj[keys[i]] = {};
+      obj = obj[keys[i]];
+    }
+    obj[keys[keys.length - 1]] = val;
+    saveLocal();
+    refreshUI();
+  }
+}
+
+async function fbPush(path, val) {
+  if (useFirebase) {
+    const { ref, push } = dbFns;
+    const r = push(ref(db, path));
+    await dbFns.set(r, val);
+    return r.key;
+  } else {
+    const id = 'id_' + Date.now();
+    const keys = path.split('/');
+    let obj = data;
+    for (const k of keys) {
+      if (!obj[k]) obj[k] = {};
+      obj = obj[k];
+    }
+    obj[id] = val;
+    saveLocal();
+    refreshUI();
+    return id;
+  }
+}
+
+async function fbRemove(path) {
+  if (useFirebase) {
+    const { ref, remove } = dbFns;
+    await remove(ref(db, path));
+  } else {
+    const keys = path.split('/');
+    let obj = data;
+    for (let i = 0; i < keys.length - 1; i++) obj = obj[keys[i]] || {};
+    delete obj[keys[keys.length - 1]];
+    saveLocal();
+    refreshUI();
+  }
+}
+
+// ===== LOGIN =====
+function selectRole(role) {
+  selectedRole = role;
+  document.querySelectorAll('.role-tab').forEach(t => t.classList.remove('active'));
+  event.target.classList.add('active');
+  document.getElementById('field-id').style.display = role === 'gerant' ? 'block' : 'none';
+  document.getElementById('field-employe').style.display = role === 'employe' ? 'block' : 'none';
+}
+
+function loadEmployesForLogin() {
+  const sel = document.getElementById('login-employe');
+  sel.innerHTML = '<option value="">Choisir...</option>';
+  Object.entries(data.employes || {}).forEach(([id, emp]) => {
+    sel.innerHTML += `<option value="${id}">${emp.nom}</option>`;
+  });
+}
+
+function doLogin() {
+  const pass = document.getElementById('login-pass').value;
+  if (selectedRole === 'gerant') {
+    const id = document.getElementById('login-id').value;
+    if ((id === 'admin' && pass === 'admin123') || pass === 'admin123') {
+      loginAs({ role: 'gerant', nom: 'Gérant', id: 'gerant' });
+    } else {
+      document.getElementById('login-error').style.display = 'block';
+    }
+  } else {
+    const empId = document.getElementById('login-employe').value;
+    if (!empId) { document.getElementById('login-error').style.display = 'block'; return; }
+    const emp = data.employes[empId];
+    if (emp && (pass === emp.password || pass === 'coiff123')) {
+      loginAs({ role: 'employe', nom: emp.nom, id: empId });
+    } else {
+      document.getElementById('login-error').style.display = 'block';
+    }
+  }
+}
+
+function loginAs(user) {
+  currentUser = user;
+  document.getElementById('login-screen').style.display = 'none';
+  document.getElementById('app').style.display = 'block';
+  document.getElementById('user-name').textContent = user.nom;
+  buildNav();
+  refreshUI();
+}
+
+function doLogout() {
+  currentUser = null;
+  document.getElementById('login-screen').style.display = 'flex';
+  document.getElementById('app').style.display = 'none';
+  document.getElementById('login-pass').value = '';
+  document.getElementById('login-error').style.display = 'none';
+}
+
+// ===== NAV =====
+function buildNav() {
+  const tabs = [
+    { id: 'dashboard', label: '🏠 Accueil' },
+    { id: 'rdv', label: '📅 RDV' },
+    { id: 'caisse', label: '💰 Caisse' },
+    { id: 'stock', label: '📦 Stock' },
+  ];
+  if (currentUser.role === 'gerant') {
+    tabs.push({ id: 'equipe', label: '👥 Équipe' });
+    tabs.push({ id: 'prestations', label: '✂️ Prestations' });
+  }
+  const nav = document.getElementById('nav-tabs');
+  nav.innerHTML = tabs.map((t, i) =>
+    `<button class="nav-tab ${i===0?'active':''}" onclick="switchTab('${t.id}', this)">${t.label}</button>`
+  ).join('');
+}
+
+function switchTab(id, btn) {
+  document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
+  document.getElementById('tab-' + id).classList.add('active');
+  btn.classList.add('active');
+}
+
+// ===== REFRESH UI =====
+function refreshUI() {
+  if (!currentUser) return;
+  renderStats();
+  renderRdv();
+  renderStock();
+  renderPrestations();
+  renderEquipe();
+  renderCaisse();
+  renderVentes();
+  renderNextRdv();
+  renderPerf();
+  loadEmployesForLogin();
+}
+
+// ===== STATS =====
+function renderStats() {
+  const todayRdvs = Object.values(data.rdvs || {}).filter(r => r.date === TODAY);
+  const servis = todayRdvs.filter(r => r.statut === 'servi').length;
+  const todayVentes = Object.values(data.ventes || {}).filter(v => v.date === TODAY);
+  const ca = todayVentes.reduce((s, v) => s + (v.total || 0), 0);
+  const alertes = Object.values(data.stock || {}).filter(s => s.qty <= (s.seuil || 5)).length;
+
+  document.getElementById('stat-rdv').textContent = todayRdvs.length;
+  document.getElementById('stat-servis').textContent = servis;
+  document.getElementById('stat-caisse').textContent = ca.toLocaleString();
+  document.getElementById('stat-stock').textContent = alertes;
+}
+
+// ===== NEXT RDV =====
+function renderNextRdv() {
+  const now = new Date();
+  const hhmm = now.getHours().toString().padStart(2,'0') + ':' + now.getMinutes().toString().padStart(2,'0');
+  const list = document.getElementById('next-rdv-list');
+  const todayRdvs = Object.entries(data.rdvs || {})
+    .filter(([,r]) => r.date === TODAY && r.statut !== 'servi' && r.heure >= hhmm)
+    .sort((a, b) => a[1].heure.localeCompare(b[1].heure))
+    .slice(0, 3);
+
+  if (!todayRdvs.length) {
+    list.innerHTML = '<div class="empty"><div class="icon">📅</div>Aucun RDV à venir aujourd\'hui</div>';
+    return;
+  }
+  list.innerHTML = todayRdvs.map(([id, r]) => `
+    <div class="card">
+      <div class="card-info">
+        <div class="card-title">${r.client}</div>
+        <div class="card-sub">${r.heure} · ${r.prestation || '—'} · ${r.coiffeur || 'Non assigné'}</div>
+      </div>
+      <span class="card-badge badge-gold">${r.heure}</span>
+    </div>
+  `).join('');
+}
+
+// ===== PERF =====
+function renderPerf() {
+  if (currentUser.role !== 'gerant') {
+    document.getElementById('dashboard-perf').style.display = 'none';
+    return;
+  }
+  document.getElementById('dashboard-perf').style.display = 'block';
+  const tbody = document.getElementById('perf-body');
+  const employes = Object.entries(data.employes || {});
+  if (!employes.length) { tbody.innerHTML = '<tr><td colspan="4" style="text-align:center;color:var(--text-muted);padding:20px">Aucun employé</td></tr>'; return; }
+
+  const todayRdvs = Object.values(data.rdvs || {}).filter(r => r.date === TODAY);
+  const todayVentes = Object.values(data.ventes || {}).filter(v => v.date === TODAY);
+
+  tbody.innerHTML = employes.map(([id, emp]) => {
+    const rdvs = todayRdvs.filter(r => r.coiffeurId === id).length;
+    const servis = todayRdvs.filter(r => r.coiffeurId === id && r.statut === 'servi').length;
+    const ca = todayVentes.filter(v => v.employeId === id).reduce((s, v) => s + (v.total || 0), 0);
+    return `<tr>
+      <td><strong>${emp.nom}</strong><br><small style="color:var(--text-muted)">${emp.specialite || '—'}</small></td>
+      <td>${rdvs}</td>
+      <td>${servis}</td>
+      <td style="color:var(--gold)">${ca.toLocaleString()}</td>
+    </tr>`;
+  }).join('');
+}
+
+// ===== RDV =====
+function renderRdv() {
+  const list = document.getElementById('rdv-list');
+  const rdvs = Object.entries(data.rdvs || {})
+    .filter(([,r]) => currentUser.role === 'gerant' || r.coiffeurId === currentUser.id)
+    .sort((a, b) => (a[1].heure || '').localeCompare(b[1].heure || ''));
+
+  if (!rdvs.length) {
+    list.innerHTML = '<div class="empty"><div class="icon">📅</div>Aucun rendez-vous</div>';
+    return;
+  }
+  list.innerHTML = rdvs.map(([id, r]) => `
+    <div class="card">
+      <div class="card-info">
+        <div class="card-title">${r.client}</div>
+        <div class="card-sub">${r.heure || ''} · ${r.prestation || '—'} · ${r.coiffeur || 'Non assigné'}${r.note ? ' · ' + r.note : ''}</div>
+      </div>
+      <div style="display:flex;gap:8px;align-items:center;">
+        <span class="card-badge ${r.statut === 'servi' ? 'badge-green' : 'badge-gold'}">${r.statut === 'servi' ? '✅ Servi' : '⏳ En attente'}</span>
+        ${r.statut !== 'servi' ? `<button class="btn btn-sm btn-primary" onclick="marquerServi('${id}')">✓</button>` : ''}
+        ${currentUser.role === 'gerant' ? `<button class="btn btn-sm btn-danger" onclick="deleteItem('rdvs','${id}')">✕</button>` : ''}
+      </div>
+    </div>
+  `).join('');
+}
+
+async function saveRdv() {
+  const client = document.getElementById('rdv-client').value.trim();
+  const heure = document.getElementById('rdv-heure').value;
+  if (!client || !heure) return alert('Client et heure requis');
+
+  const coiffeurId = document.getElementById('rdv-coiffeur').value;
+  const coiffeur = coiffeurId && data.employes[coiffeurId] ? data.employes[coiffeurId].nom : 'Non assigné';
+  const prestation = document.getElementById('rdv-prestation').value;
+  const note = document.getElementById('rdv-note').value;
+
+  await fbPush('rdvs', { client, heure, coiffeurId, coiffeur, prestation, note, date: TODAY, statut: 'attente' });
+  closeModal('rdv');
+  document.getElementById('rdv-client').value = '';
+  document.getElementById('rdv-heure').value = '';
+  document.getElementById('rdv-note').value = '';
+}
+
+async function marquerServi(id) {
+  if (useFirebase) {
+    const { ref, update } = dbFns;
+    await update(ref(db, 'rdvs/' + id), { statut: 'servi' });
+  } else {
+    if (data.rdvs[id]) data.rdvs[id].statut = 'servi';
+    saveLocal();
+    refreshUI();
+  }
+}
+
+// ===== CAISSE =====
+function renderCaisse() {
+  const sel = document.getElementById('caisse-prestation');
+  const current = sel.value;
+  sel.innerHTML = '<option value="">Choisir une prestation</option>';
+  Object.entries(data.prestations || {}).forEach(([id, p]) => {
+    sel.innerHTML += `<option value="${id}" data-prix="${p.prix}">${p.icon || '✂️'} ${p.nom} — ${p.prix} DJF</option>`;
+  });
+  if (current) sel.value = current;
+  renderTicket();
+}
+
+function addToTicket() {
+  const sel = document.getElementById('caisse-prestation');
+  const opt = sel.options[sel.selectedIndex];
+  if (!opt || !opt.value) return;
+  ticket.push({ id: opt.value, nom: opt.text.split('—')[0].trim(), prix: parseInt(opt.dataset.prix) || 0 });
+  renderTicket();
+}
+
+function renderTicket() {
+  const container = document.getElementById('ticket-items');
+  if (!ticket.length) { container.innerHTML = ''; document.getElementById('ticket-total').textContent = '0 DJF'; return; }
+  container.innerHTML = ticket.map((t, i) => `
+    <div class="ticket-item">
+      <span>${t.nom}</span>
+      <div style="display:flex;gap:10px;align-items:center;">
+        <span style="color:var(--gold)">${t.prix} DJF</span>
+        <button onclick="removeTicket(${i})" style="background:none;border:none;color:var(--danger);cursor:pointer;font-size:16px;">✕</button>
+      </div>
+    </div>
+  `).join('');
+  const total = ticket.reduce((s, t) => s + t.prix, 0);
+  document.getElementById('ticket-total').textContent = total.toLocaleString() + ' DJF';
+}
+
+function removeTicket(i) { ticket.splice(i, 1); renderTicket(); }
+
+async function encaisser() {
+  if (!ticket.length) return alert('Ticket vide');
+  const client = document.getElementById('caisse-client').value.trim() || 'Client';
+  const total = ticket.reduce((s, t) => s + t.prix, 0);
+  await fbPush('ventes', {
+    client, items: ticket, total, date: TODAY,
+    heure: new Date().toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' }),
+    employeId: currentUser.id, employe: currentUser.nom
+  });
+  ticket = [];
+  document.getElementById('caisse-client').value = '';
+  renderTicket();
+  alert('✅ Encaissement réussi !');
+}
+
+function renderVentes() {
+  const list = document.getElementById('ventes-list');
+  const ventes = Object.entries(data.ventes || {})
+    .filter(([,v]) => v.date === TODAY && (currentUser.role === 'gerant' || v.employeId === currentUser.id))
+    .sort((a, b) => (b[1].heure || '').localeCompare(a[1].heure || ''));
+  const total = ventes.reduce((s, [,v]) => s + (v.total || 0), 0);
+  document.getElementById('total-jour').textContent = total.toLocaleString();
+
+  if (!ventes.length) { list.innerHTML = '<div class="empty"><div class="icon">💳</div>Aucune vente aujourd\'hui</div>'; return; }
+  list.innerHTML = ventes.map(([id, v]) => `
+    <div class="card">
+      <div class="card-info">
+        <div class="card-title">${v.client}</div>
+        <div class="card-sub">${v.heure || ''} · ${v.employe || ''}</div>
+      </div>
+      <span class="card-badge badge-green">${(v.total || 0).toLocaleString()} DJF</span>
+    </div>
+  `).join('');
+}
+
+// ===== STOCK =====
+function renderStock() {
+  const list = document.getElementById('stock-list');
+  const items = Object.entries(data.stock || {});
+  if (!items.length) { list.innerHTML = '<div class="empty"><div class="icon">📦</div>Aucun produit en stock</div>'; return; }
+  list.innerHTML = items.map(([id, s]) => {
+    const alerte = s.qty <= (s.seuil || 5);
+    return `<div class="card">
+      <div class="card-info">
+        <div class="card-title">${s.nom}</div>
+        <div class="card-sub">${s.categorie || '—'} · Seuil : ${s.seuil || 5}</div>
+      </div>
+      <div style="display:flex;gap:8px;align-items:center;">
+        <span class="card-badge ${alerte ? 'badge-red' : 'badge-green'}">${s.qty} unités</span>
+        ${currentUser.role === 'gerant' ? `<button class="btn btn-sm btn-danger" onclick="deleteItem('stock','${id}')">✕</button>` : ''}
+      </div>
+    </div>`;
+  }).join('');
+}
+
+async function saveStock() {
+  const nom = document.getElementById('stock-nom').value.trim();
+  const qty = parseInt(document.getElementById('stock-qty').value) || 0;
+  if (!nom) return alert('Nom requis');
+  const cat = document.getElementById('stock-cat').value;
+  const seuil = parseInt(document.getElementById('stock-seuil').value) || 5;
+  await fbPush('stock', { nom, categorie: cat, qty, seuil });
+  closeModal('stock');
+  document.getElementById('stock-nom').value = '';
+  document.getElementById('stock-qty').value = '';
+}
+
+// ===== PRESTATIONS =====
+function renderPrestations() {
+  const list = document.getElementById('prestations-list');
+  if (!list) return;
+  const items = Object.entries(data.prestations || {});
+  if (!items.length) { list.innerHTML = '<div class="empty"><div class="icon">✂️</div>Aucune prestation</div>'; return; }
+  list.innerHTML = items.map(([id, p]) => `
+    <div class="card">
+      <div class="card-info">
+        <div class="card-title">${p.icon || '✂️'} ${p.nom}</div>
+      </div>
+      <div style="display:flex;gap:8px;align-items:center;">
+        <span class="card-badge badge-gold">${(p.prix || 0).toLocaleString()} DJF</span>
+        <button class="btn btn-sm btn-danger" onclick="deleteItem('prestations','${id}')">✕</button>
+      </div>
+    </div>
+  `).join('');
+
+  // Update selects
+  ['rdv-prestation','caisse-prestation'].forEach(selId => {
+    const sel = document.getElementById(selId);
+    if (!sel) return;
+    const cur = sel.value;
+    sel.innerHTML = '<option value="">—</option>';
+    items.forEach(([id, p]) => {
+      sel.innerHTML += `<option value="${p.nom}" data-prix="${p.prix}">${p.icon || '✂️'} ${p.nom}${selId === 'caisse-prestation' ? ' — ' + p.prix + ' DJF' : ''}</option>`;
+    });
+    sel.value = cur;
+  });
+}
+
+async function savePrestation() {
+  const nom = document.getElementById('prest-nom').value.trim();
+  const prix = parseInt(document.getElementById('prest-prix').value) || 0;
+  if (!nom) return alert('Nom requis');
+  const icon = document.getElementById('prest-icon').value;
+  await fbPush('prestations', { nom, prix, icon });
+  closeModal('prestation');
+  document.getElementById('prest-nom').value = '';
+  document.getElementById('prest-prix').value = '';
+}
+
+// ===== EQUIPE =====
+function renderEquipe() {
+  const list = document.getElementById('equipe-list');
+  if (!list) return;
+  const items = Object.entries(data.employes || {});
+  if (!items.length) { list.innerHTML = '<div class="empty"><div class="icon">👥</div>Aucun employé</div>'; return; }
+  list.innerHTML = items.map(([id, emp]) => `
+    <div class="card">
+      <div class="card-info">
+        <div class="card-title">✂️ ${emp.nom}</div>
+        <div class="card-sub">${emp.specialite || '—'} · Pass: ${emp.password || 'coiff123'}</div>
+      </div>
+      <button class="btn btn-sm btn-danger" onclick="deleteItem('employes','${id}')">✕</button>
+    </div>
+  `).join('');
+
+  // Update rdv coiffeur select
+  const sel = document.getElementById('rdv-coiffeur');
+  if (sel) {
+    sel.innerHTML = '<option value="">Non assigné</option>';
+    items.forEach(([id, emp]) => {
+      sel.innerHTML += `<option value="${id}">${emp.nom}</option>`;
+    });
+  }
+}
+
+async function saveEmploye() {
+  const nom = document.getElementById('emp-nom').value.trim();
+  if (!nom) return alert('Nom requis');
+  const spec = document.getElementById('emp-spec').value.trim();
+  const pass = document.getElementById('emp-pass').value.trim() || 'coiff123';
+  await fbPush('employes', { nom, specialite: spec, password: pass });
+  closeModal('employe');
+  document.getElementById('emp-nom').value = '';
+  document.getElementById('emp-spec').value = '';
+  document.getElementById('emp-pass').value = '';
+}
+
+// ===== DELETE =====
+async function deleteItem(collection, id) {
+  if (!confirm('Supprimer ?')) return;
+  await fbRemove(collection + '/' + id);
+}
+
+// ===== MODALS =====
+function openModal(name) {
+  document.getElementById('modal-' + name).classList.add('open');
+}
+
+function closeModal(name) {
+  document.getElementById('modal-' + name).classList.remove('open');
+}
+
+// Close on overlay click
+document.querySelectorAll('.modal-overlay').forEach(o => {
+  o.addEventListener('click', e => { if (e.target === o) o.classList.remove('open'); });
+});
+</script>
+</body>
+</html>
